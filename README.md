@@ -174,7 +174,7 @@
 
 ## Контрольная работа №4. Системный трек
 
-### Фаза 4 — DevOps: Make / Docker / docker-compose / CI
+## Фаза 4 — DevOps: Make / Docker / docker-compose / CI
 
 ### 4.1 Make и сборка
 - Анатомия правила: `target: prereqs` + рецепт; автопеременные `$@`, `$<`, `$^`.
