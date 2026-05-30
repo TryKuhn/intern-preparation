@@ -138,3 +138,85 @@
 
 ### 2.11 Жадность + математика
 - Жадные доказательства, gcd, решето, модульная арифметика, **битовые операции** (АКОС-стык).
+
+## Фаза 3 — Системный трек: концепты + мини-приложения на C++
+
+### 3.1 Многопоточка в C++
+- `std::thread`, `mutex`, `lock_guard`/`unique_lock`/`scoped_lock`, `condition_variable` (ложные пробуждения), `atomic`, **семафоры C++20** (`<semaphore>`).
+- Тонкости: **гонка данных = UB**; модели памяти (relaxed/acquire-release/seq_cst); `thread_local`; `volatile` НЕ для потоков; дедлок и `std::lock`.
+  
+### 3.2 ОС/АКОС база\
+- Процессы vs потоки, планировщик, виртуальная память, системные вызовы, endianness.
+- **IPC (межпроцессное взаимодействие)**: пайпы (анонимные), FIFO (именованные пайпы), разделяемая память (`shmget`/`mmap`), семафоры (`semget`/`sem_open`), сигналы, сокеты (в т.ч. Unix domain).
+- **Системные очереди сообщений: **System V** (`msgget`/`msgsnd`/`msgrcv`/`msgctl`, `mtype` для выборочного чтения) и **POSIX** (`mq_open`/`mq_send`/`mq_receive`/`mq_notify`, приоритеты, дескриптор-как-fd -> работает с `epoll`).
+  
+### 3.3 Сети и HTTP
+- TCP/IP на пальцах, жизненный цикл HTTP-запроса, REST, статус-коды, идемпотентность.
+- **Сериализация:** JSON vs **Protocol Buffers** (схема `.proto`, кодоген `protoc`, бинарный формат, varint, **эволюция схемы** — почему нельзя переиспользовать номера полей).
+- **gRPC** как альтернатива REST: поверх HTTP/2, 4 типа вызовов (unary, server/client-streaming, bidirectional), дедлайны, метаданные; в C++ через `grpc++`.
+
+### Движки шаблонов
+- Что это и зачем: отделение данных от представления, рендер переменных/циклов/условий в текст (HTML, конфиги, кодген).
+- Канонический пример — **Jinja2** (Python). В C++ — **inja** (header-only, Jinja-подобный, на `nlohmann/json`), mustache/mstch.
+
+### 3.4 БД — концепты + мини-апп
+- Реляционная модель, SQL (PostgreSQL), CRUD, JOIN, **индексы (B-дерево)**, транзакции, **ACID**, уровни изоляции, нормализация.
+- Мини-приложение: C++ + **libpqxx** к локальному Postgres.
+  
+### 3.5 Очереди сообщений — концепты + мини-апп
+- Зачем очередь, **Kafka** (топики, партиции, consumer group, оффсеты), **RabbitMQ** (exchange/queue, AMQP), at-least/at-most/exactly-once
+- Мини-приложение: producer/consumer на C++ + **librdkafka**.
+
+### 3.6 Распределёнка и map-reduce
+- Зачем, интуиция CAP, ментальная модель map-reduce, шардирование/репликация.
+
+### Фаза 4 — DevOps: Make / Docker / docker-compose / CI
+
+### 4.1 Make и сборка
+- Анатомия правила: `target: prereqs` + рецепт; автопеременные `$@`, `$<`, `$^`.
+- `.PHONY` (и зачем), переменные, pattern rules (`%.o: %.cpp`).
+- Инкрементальная сборка: как make решает, что пересобирать (по времени модификации).
+- Связка с **CMake**: зачем CMake поверх make, что он генерирует (Makefile/Ninja), out-of-source build, `target_link_libraries`.
+- Частые вопросы: чем `make` отличается от `cmake`; что такое `.PHONY`; почему таргет не пересобирается.
+  
+### 4.2 Docker
+- **Образ vs контейнер vs реестр**; почему контейнер не виртуалка.
+- **Слои и кэш сборки**: порядок инструкций в `Dockerfile` влияет на кэш.
+- Инструкции: `FROM/RUN/COPY/WORKDIR/ENV/EXPOSE`, **`CMD` vs `ENTRYPOINT`**.
+- **Multi-stage build под C++**: stage-сборщик с компилятором -> runtime-stage на slim-образе, кладём только бинарь; `.dockerignore`.
+- Тома (volumes) для персистентности данных БД; проброс портов `-p`; переменные окружения.
+- Частые вопросы: `CMD` vs `ENTRYPOINT`; зачем multi-stage; что такое слой; чем контейнер отличается от ВМ.
+
+### 4.3 docker-compose и CI
+- `docker-compose.yml`: `services`, `depends_on`, `networks`, `volumes`, `environment`, healthchecks.
+- Поднять стек **«C++ сервис + Postgres + Kafka» одной командой**; как сервисы видят друг друга (DNS по имени сервиса).
+- **CI**: GitHub Actions — триггеры (`on: push`/PR), jobs/steps, сборка + прогон тестов; что такое CI / CD / continuous deployment.
+- Частые вопросы: зачем compose вместо нескольких `docker run`; как контейнеры общаются в одной сети; что происходит в пайплайне при пуше.
+
+## Фаза 5 — Глубокие шаблоны, симуляции, резюме, заявка (~недели 21–28, внахлёст)
+ 
+### 5.0 Глубокие шаблоны и метапрограммирование
+ 
+### 5.1 вывод, специализация, variadic
+- Вывод аргументов в деталях: `T`, `T&`, `T&&` (forwarding) — связка со свёрткой ссылок и perfect forwarding; `decltype(auto)`.
+- Специализация: полная vs частичная; **функции нельзя частично специализировать** — только перегружать (классическая ловушка).
+- Variadic-шаблоны: parameter pack, раскрытие пакета, рекурсия vs **fold-выражения (C++17)**. Практика: `sum(...)`, `print(...)`.
+- Non-type template parameters (NTTP), в т.ч. расширенные в C++20.
+
+### 5.2 SFINAE, type traits своими руками
+- Что такое SFINAE и зачем; `std::enable_if`, трюк `void_t`, detection idiom.
+- Тур по `<type_traits>`: `is_same`, `is_integral`, `remove_reference`, `decay`, `conditional`, `is_base_of`.
+- **Пишем свои трейты руками**: `integral_constant` / `true_type`/`false_type`, `is_same<T,U>`, `remove_const`, `remove_reference`, `conditional`. Как изнутри устроен `std::move` (шаблон, возвращающий rvalue-ссылку) и `std::forward`.
+- Tag dispatch как классическая техника.
+  
+### 5.3 современная замена и модель инстанцирования
+- **Concepts (C++20)**: `requires`-клаузы и `requires`-выражения, стандартные концепты, ограничение шаблонов — современная замена SFINAE.
+- `if constexpr` против tag dispatch / SFINAE-ветвлений; `constexpr`-функции и вычисления на этапе компиляции (классический TMP — факториал — и почему `constexpr` его вытеснил).
+- CRTP (статический полиморфизм) и где применяется; dependent names, дизамбигуаторы `typename`/`template`, two-phase lookup.
+- **Модель инстанцирования**: где генерируется код, **почему шаблоны живут в заголовках**, explicit instantiation, code bloat.
+ 
+### Фаза 6 — Симуляции и заявка
+ 
+- **Контест-симуляции.** Полный формат 5 задач / 5 часов, несколько прогонов, тайм-менеджмент (сначала простые, не зависать).
+- **Моки алго-секций.** Решение вслух, разбор кода без запуска, **блиц по тонкостям C++** (move, vtable, smart ptr, UB, hash map, noexcept).
+- **Моки финалов.** Поведенческие + блиц по системным концептам + **DevOps/Git-вопросы** (Docker, multi-stage, merge vs rebase) + **API-протоколы** (protobuf vs JSON, gRPC vs REST);
